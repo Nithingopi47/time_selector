@@ -1,3 +1,4 @@
+<!-- src/components/HelloWorld.vue -->
 <template>
   <div class="page-container">
     <div class="schedule-container">
@@ -21,6 +22,7 @@
                       v-model="date.date"
                       placeholder="Select date"
                       :min-date="new Date()"
+                      @input="updateSchedule"
                     ></b-datepicker>
                   </b-field>
                   <b-field label="Time">
@@ -32,6 +34,7 @@
                       :minutes-step="15"
                       icon="clock"
                       editable
+                      @input="updateSchedule"
                     >
                     </b-timepicker>
                   </b-field>
@@ -59,6 +62,7 @@
                     v-model="dailySchedule.startDate"
                     placeholder="Start date"
                     :min-date="new Date()"
+                    @input="updateSchedule"
                   ></b-datepicker>
                 </b-field>
                 <b-field label="End Date">
@@ -66,6 +70,7 @@
                     v-model="dailySchedule.endDate"
                     placeholder="End date"
                     :min-date="dailySchedule.startDate || new Date()"
+                    @input="updateSchedule"
                   ></b-datepicker>
                 </b-field>
               </b-field>
@@ -81,6 +86,7 @@
                       :minutes-step="15"
                       icon="clock"
                       editable
+                      @input="updateSchedule"
                     >
                     </b-timepicker>
                   </b-field>
@@ -108,6 +114,7 @@
                     v-model="weeklySchedule.startDate"
                     placeholder="Start date"
                     :min-date="new Date()"
+                    @input="updateSchedule"
                   ></b-datepicker>
                 </b-field>
                 <b-field label="End Date">
@@ -115,6 +122,7 @@
                     v-model="weeklySchedule.endDate"
                     placeholder="End date"
                     :min-date="weeklySchedule.startDate || new Date()"
+                    @input="updateSchedule"
                   ></b-datepicker>
                 </b-field>
               </b-field>
@@ -125,6 +133,7 @@
                   v-for="day in weekDays"
                   :key="day.value"
                   :native-value="day.value"
+                  @input="updateSchedule"
                 >
                   {{ day.label }}
                 </b-checkbox-button>
@@ -141,6 +150,7 @@
                       :minutes-step="15"
                       icon="clock"
                       editable
+                      @input="updateSchedule"
                     >
                     </b-timepicker>
                   </b-field>
@@ -159,18 +169,6 @@
             </div>
           </b-tab-item>
         </b-tabs>
-
-        <!-- Submit Button -->
-        <div class="mt-5 has-text-centered">
-          <b-button
-            type="is-success"
-            @click="submitSchedule"
-            :disabled="!isFormValid"
-          >
-            <b-icon icon="save"></b-icon>
-            <span>Save Schedule</span>
-          </b-button>
-        </div>
       </section>
     </div>
   </div>
@@ -179,6 +177,16 @@
 <script>
 export default {
   name: 'HelloWorld',
+  props: {
+    value: {
+      type: [Array, Object],
+      default: null
+    },
+    showSaveButton: {
+      type: Boolean,
+      default: true
+    }
+  },
   data() {
     return {
       activeTab: 0,
@@ -216,28 +224,6 @@ export default {
     scheduleType() {
       const types = ['specific', 'daily', 'weekly'];
       return types[this.activeTab];
-    },
-    isFormValid() {
-      if (!this.selectedTimezone) return false;
-
-      switch (this.scheduleType) {
-        case 'specific':
-          return this.specificDates.length > 0 && 
-                 this.specificDates.every(d => d.date && d.time);
-        case 'daily':
-          return this.dailySchedule.startDate &&
-                 this.dailySchedule.endDate &&
-                 this.dailySchedule.times.length > 0 &&
-                 this.dailySchedule.times.every(t => t.value);
-        case 'weekly':
-          return this.weeklySchedule.startDate &&
-                 this.weeklySchedule.endDate &&
-                 this.weeklySchedule.selectedDays.length > 0 &&
-                 this.weeklySchedule.times.length > 0 &&
-                 this.weeklySchedule.times.every(t => t.value);
-        default:
-          return false;
-      }
     }
   },
   methods: {
@@ -272,35 +258,43 @@ export default {
     },
     addSpecificDate() {
       this.specificDates.push({ date: null, time: null });
+      this.updateSchedule();
     },
     removeSpecificDate(index) {
       if (this.specificDates.length > 1) {
         this.specificDates.splice(index, 1);
+        this.updateSchedule();
       }
     },
     addDailyTime() {
       this.dailySchedule.times.push({ value: null });
+      this.updateSchedule();
     },
     removeDailyTime(index) {
       if (this.dailySchedule.times.length > 1) {
         this.dailySchedule.times.splice(index, 1);
+        this.updateSchedule();
       }
     },
     addWeeklyTime() {
       this.weeklySchedule.times.push({ value: null });
+      this.updateSchedule();
     },
     removeWeeklyTime(index) {
       if (this.weeklySchedule.times.length > 1) {
         this.weeklySchedule.times.splice(index, 1);
+        this.updateSchedule();
       }
     },
-    submitSchedule() {
-      const schedule = {
+    updateSchedule() {
+      const scheduleData = {
         timezone: this.selectedTimezone,
         type: this.scheduleType,
         schedule: this.getScheduleData()
       };
-      console.log('Schedule Data:', JSON.stringify(schedule, null, 2));
+      
+      this.$emit('schedule-updated', scheduleData);
+      this.$emit('input', scheduleData);
     },
     getScheduleData() {
       switch (this.scheduleType) {
@@ -330,11 +324,16 @@ export default {
           };
       }
     }
+  },
+  watch: {
+    activeTab() {
+      this.updateSchedule();
+    }
   }
 }
 </script>
 
-<style>
+<style scoped>
 @import 'buefy/dist/buefy.css';
 
 .page-container {

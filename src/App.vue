@@ -1,20 +1,20 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <WebinarManager />
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import WebinarManager from './components/WebinarManager.vue'
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    WebinarManager
   }
 }
 </script>
+
 
 <style lang="scss">
 #app {

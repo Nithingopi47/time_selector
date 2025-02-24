@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Buefy from 'buefy'
 import 'buefy/dist/buefy.css'
+import '@fortawesome/fontawesome-free/css/all.css'
 
 // Font Awesome imports
 import { library } from '@fortawesome/fontawesome-svg-core'
